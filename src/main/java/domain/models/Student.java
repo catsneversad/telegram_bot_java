@@ -30,6 +30,7 @@ public class Student extends User {
         this.ownFaculty = ownFaculty;
     }
 
+
     public String getOwnFaculty() {
         return ownFaculty;
     }

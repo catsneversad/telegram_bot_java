@@ -1,5 +1,6 @@
 package services.interfaces;
 
+import domain.UserLoginData;
 import domain.models.User;
 
 public interface IUserService {
@@ -8,6 +9,8 @@ public interface IUserService {
     User getUserByUsername(String username);
 
     User getStudentDataByUsername(User user);
+
+    User findUserByLogin(UserLoginData data);
 
     void addUser(User user);
 

@@ -8,8 +8,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import services.AuthorizationService;
 import services.UserService;
@@ -20,8 +18,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
+
 
 public class BotController extends TelegramLongPollingBot {
     private final IUserService userService = new UserService();
@@ -31,6 +28,21 @@ public class BotController extends TelegramLongPollingBot {
 
     private User user = new User();
     private boolean currentUser=false;
+
+    private CommandsController commandsController;
+
+    public BotController() {
+        this.commandsController = new CommandsController();
+    }
+
+    public void sendMsg(SendMessage sendMessage) {
+        try {
+            execute(sendMessage);
+            return;
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     @Override
@@ -44,24 +56,28 @@ public class BotController extends TelegramLongPollingBot {
 
         if(currentUser==false) {
             if (receivedMessage.getText().equals("/start")) {
-                sendMessage.setText("Sign in:" + "\n" + "username:<<your username>>");
+                sendMessage.setText("To sign in you have to confirm your login and password \n commands:\n" +
+                        "/set_username <<your login>>\n" +
+                        "/set_password <<your password>>");
             }
-            if (receivedMessage.getText().startsWith("username:")) {
-                String[] takenmsg = receivedMessage.getText().split(":");
+            if (receivedMessage.getText().startsWith("/set_username ")) {
+                String[] takenmsg = receivedMessage.getText().split(" ");
                 user.setUsername(takenmsg[1]);
-                sendMessage.setText("Write your password:" + "\n" + "password:<<your password>>");
+                sendMessage.setText("password is required!");
             }
             if(user.getUsername()!=null) {
-                if (receivedMessage.getText().startsWith("password:")) {
-                    String[] takenmsg = receivedMessage.getText().split(":");
+                if (receivedMessage.getText().startsWith("/set_password ")) {
+                    String[] takenmsg = receivedMessage.getText().split(" ");
                     user.setPassword(takenmsg[1]);
                     UserLoginData userLoginData = new UserLoginData();
                     userLoginData.setUsername(user.getUsername());
                     userLoginData.setPassword(user.getPassword());
+                    User data = userService.findUserByLogin(userLoginData);
                     if (login(userLoginData)) {
-                        sendMessage.setText("Congrats!");
+                        sendMessage.setText("Welcome " + data.getName() + " " + data.getSurname() + "\n" +
+                                "/myuserdata - data about user \n" + "/mygroup - group of user \n" + "/myfaculty - faculty of user \n");
                     } else {
-                        sendMessage.setText("NotCongrats!");
+                        sendMessage.setText("Incorrect username or password!");
                     }
 
                 }
@@ -79,11 +95,6 @@ public class BotController extends TelegramLongPollingBot {
                 User student = userService.getStudentDataByUsername(user);
                 sendMessage.setText(((Student) student).getOwnFaculty());
             }
-        }
-        try {
-            execute(sendMessage);
-        } catch (TelegramApiException e) {
-            System.out.println(e.getMessage());
         }
         try {
             execute(sendMessage);

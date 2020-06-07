@@ -1,5 +1,6 @@
 package services;
 
+import domain.UserLoginData;
 import domain.models.User;
 import repositories.UserRepository;
 import repositories.interfaces.IUserRepository;
@@ -17,6 +18,8 @@ public class UserService implements IUserService {
     }
 
     public User getStudentDataByUsername(User user) { return userRepo.getStudentByUsername(user); }
+
+    public User findUserByLogin(UserLoginData data) { return userRepo.findUserByLogin(data); }
 
     public void addUser(User user) {
         userRepo.add(user);
