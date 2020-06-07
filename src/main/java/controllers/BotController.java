@@ -25,13 +25,19 @@ import java.util.List;
 public class BotController extends TelegramLongPollingBot {
     private final IUserService userService = new UserService();
     private final IAuthorizationService authService = new AuthorizationService();
-    private final String TOKEN = "1251502840:AAFNkleaB9Bs3DkwXraO1lfUifcZN5MTv8Q";
-    private final String USERNAME = "aitubotit1908";
+    private final String TOKEN = "1196395361:AAHB_vvnGRj2HkjGctut9Kf3vaAy7tSQLb4";
+    private final String USERNAME = "aitubotit1908ver2";
 
-    private String username;
-    private String password;
-    private boolean currentUser=false;
+    private String username = null;
+    private String password = null;
+    private User currentUser = null;
 
+
+    private CommandsController commandsController;
+
+    public BotController() {
+        this.commandsController = new CommandsController();
+    }
 
 
     @Override
@@ -43,37 +49,74 @@ public class BotController extends TelegramLongPollingBot {
         String surname = receivedMessage.getFrom().getLastName();
         surname = (surname != null ? surname : "");
 
-        if(currentUser==false) {
-            if (receivedMessage.getText().equals("/start")) {
-                sendMessage.setText("Sign in:" + "\n" + "username:<<your username>>");
-            }
-            if (receivedMessage.getText().startsWith("username:")) {
-                String[] takenmsg = receivedMessage.getText().split(":");
-                username = takenmsg[1];
-                sendMessage.setText("Write your password:" + "\n" + "password:<<your password>>");
-            }
-            if(username!=null) {
-                if (receivedMessage.getText().startsWith("password:")) {
-                    String[] takenmsg = receivedMessage.getText().split(":");
-                    password = takenmsg[1];
+        String userInfo = name + " " + surname;
+
+        String text = receivedMessage.getText();
+        Integer messageId = receivedMessage.getMessageId();
+
+        String takenMessage[];
+
+        if (text.equals("/start")) {
+            this.sendMsg(this.commandsController.commands(text, receivedMessage.getChatId(), messageId));
+        } else if (text.startsWith("/set_username_for_login")) {
+            takenMessage = text.split(" ");
+            username = takenMessage[1];
+            this.sendMsg(sendMessage.setText("Successfully updated."));
+        } else if (text.startsWith("/set_password_for_login")) {
+            takenMessage = text.split( " ");
+            password = takenMessage[1];
+            this.sendMsg(sendMessage.setText("Successfully updated."));
+        } else if (text.equals("/info")) {
+            if (currentUser == null) {
+                if (username != null && password != null) {
                     UserLoginData userLoginData = new UserLoginData();
                     userLoginData.setUsername(username);
                     userLoginData.setPassword(password);
                     if (login(userLoginData)) {
-                        sendMessage.setText("Congrats!");
+                        this.sendMsg(sendMessage.setText("Congrats!\n" + userService.getUserByUsername(username).toString()));
                     } else {
-                        sendMessage.setText("NotCongrats!");
+                        this.sendMsg(sendMessage.setText("notCongrats!\n"));
                     }
-
+                } else {
+                    System.out.println("HELLO2");
+                    this.sendMsg(sendMessage.setText("SORRY U R DUMB xD"));
                 }
+            } else {
+                this.sendMsg(sendMessage.setText(userService.getUserByUsername(username).toString()));
             }
         }
-        else {
-            SendMessage message = new SendMessage();
-            if(receivedMessage.getText().equals("/myuserdata")){
-                message.setText(userService.getUserByUsername(username).toString());
-            }
-        }
+//        if(currentUser==null) {
+//            sendMessage.setText("Sign in:" + "\n" + "username:<<your username>>");
+//            while (true) {
+//                if (!receivedMessage.getText().isEmpty() && receivedMessage.getText().startsWith("username:")) {
+//                    String[] takenmsg = receivedMessage.getText().split(":");
+//                    username = takenmsg[1];
+//                    sendMessage.setText("Write your password:" + "\n" + "password:<<your password>>");
+//                }
+//                if (username != null) {
+//                    if (receivedMessage.getText().startsWith("password:")) {
+//                        String[] takenmsg = receivedMessage.getText().split(":");
+//                        password = takenmsg[1];
+//                        UserLoginData userLoginData = new UserLoginData();
+//                        userLoginData.setUsername(username);
+//                        userLoginData.setPassword(password);
+//                        if (login(userLoginData)) {
+//                            sendMessage.setText("Congrats!");
+//                            break;
+//                        } else {
+//                            sendMessage.setText("NotCongrats!");
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        else {
+//            SendMessage message = new SendMessage();
+//            if(receivedMessage.getText().equals("/myuserdata")){
+//                message.setText(userService.getUserByUsername(username).toString());
+//            }
+//        }
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
@@ -86,17 +129,21 @@ public class BotController extends TelegramLongPollingBot {
         }
     }
 
+    public void sendMsg(SendMessage sendMessage) {
+        try {
+            execute(sendMessage);
+            return;
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public boolean login(UserLoginData data) {
         try {
             AccessToken token = authService.authenticateUser(data);
-            currentUser=true;
+            currentUser = authService.getUserByUsername(data.getUsername());
             return true;
         } catch (Exception e) {
-            currentUser=false;
             return false;
         }
     }
