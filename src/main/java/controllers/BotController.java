@@ -2,6 +2,7 @@ package controllers;
 
 import domain.AccessToken;
 import domain.UserLoginData;
+import domain.models.Student;
 import domain.models.User;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -25,13 +26,11 @@ import java.util.List;
 public class BotController extends TelegramLongPollingBot {
     private final IUserService userService = new UserService();
     private final IAuthorizationService authService = new AuthorizationService();
-    private final String TOKEN = "1251502840:AAFNkleaB9Bs3DkwXraO1lfUifcZN5MTv8Q";
-    private final String USERNAME = "aitubotit1908";
+    private final String TOKEN = "922444330:AAGvjm9Fyh9BJ9iSeelDbVvUN32rU7o9Sus";
+    private final String USERNAME = "DimkeksBot";
 
-    private String username;
-    private String password;
+    private User user = new User();
     private boolean currentUser=false;
-
 
 
     @Override
@@ -49,16 +48,16 @@ public class BotController extends TelegramLongPollingBot {
             }
             if (receivedMessage.getText().startsWith("username:")) {
                 String[] takenmsg = receivedMessage.getText().split(":");
-                username = takenmsg[1];
+                user.setUsername(takenmsg[1]);
                 sendMessage.setText("Write your password:" + "\n" + "password:<<your password>>");
             }
-            if(username!=null) {
+            if(user.getUsername()!=null) {
                 if (receivedMessage.getText().startsWith("password:")) {
                     String[] takenmsg = receivedMessage.getText().split(":");
-                    password = takenmsg[1];
+                    user.setPassword(takenmsg[1]);
                     UserLoginData userLoginData = new UserLoginData();
-                    userLoginData.setUsername(username);
-                    userLoginData.setPassword(password);
+                    userLoginData.setUsername(user.getUsername());
+                    userLoginData.setPassword(user.getPassword());
                     if (login(userLoginData)) {
                         sendMessage.setText("Congrats!");
                     } else {
@@ -69,9 +68,16 @@ public class BotController extends TelegramLongPollingBot {
             }
         }
         else {
-            SendMessage message = new SendMessage();
             if(receivedMessage.getText().equals("/myuserdata")){
-                message.setText(userService.getUserByUsername(username).toString());
+                sendMessage.setText(userService.getUserByUsername(user.getUsername()).toString());
+            }
+            if(receivedMessage.getText().equals("/mygroup")){
+                User student = userService.getStudentDataByUsername(user);
+                sendMessage.setText(((Student) student).getOwnClass());
+            }
+            if(receivedMessage.getText().equals("/myfaculty")){
+                User student = userService.getStudentDataByUsername(user);
+                sendMessage.setText(((Student) student).getOwnFaculty());
             }
         }
         try {

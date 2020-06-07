@@ -7,6 +7,8 @@ public interface IUserService {
 
     User getUserByUsername(String username);
 
+    User getStudentDataByUsername(User user);
+
     void addUser(User user);
 
     void updateUser(User user);

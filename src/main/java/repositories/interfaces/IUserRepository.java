@@ -9,4 +9,6 @@ public interface IUserRepository extends IEntityRepository<User> {
     User findUserByLogin(UserLoginData data);
 
     User getUserByUsername(String username);
+
+    User getStudentByUsername(User user);
 }

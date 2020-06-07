@@ -1,9 +1,9 @@
 package repositories;
 
+import domain.models.Student;
 import domain.models.User;
 import domain.UserLoginData;
 import repositories.interfaces.IDBRepository;
-import repositories.interfaces.IEntityRepository;
 import repositories.interfaces.IUserRepository;
 
 import javax.ws.rs.BadRequestException;
@@ -134,6 +134,24 @@ public class UserRepository implements IUserRepository {
     public User getUserByID(long id) {
         String sql = "SELECT * FROM users WHERE id = " + id + " LIMIT 1";
         return queryOne(sql);
+    }
+
+    public User getStudentByUsername(User user) {
+        try {
+            String sql = "SELECT student_group,faculty FROM users WHERE username = ?";
+            PreparedStatement stmt = dbrepo.getConnection().prepareStatement(sql);
+            stmt.setString(1, user.getUsername());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Student(
+                        rs.getString("student_group"),
+                        rs.getString("faculty")
+                );
+            }
+        } catch (SQLException e) {
+            throw new BadRequestException("Cannot run SQL statement: " + e.getMessage());
+        }
+        return null;
     }
 
     public User findUserByLogin(UserLoginData data) {

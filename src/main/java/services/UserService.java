@@ -16,6 +16,8 @@ public class UserService implements IUserService {
         return userRepo.getUserByUsername(username);
     }
 
+    public User getStudentDataByUsername(User user) { return userRepo.getStudentByUsername(user); }
+
     public void addUser(User user) {
         userRepo.add(user);
     }
