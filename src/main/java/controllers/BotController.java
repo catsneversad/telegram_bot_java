@@ -4,8 +4,10 @@ import domain.AccessToken;
 import domain.UserLoginData;
 import domain.models.User;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -83,6 +85,7 @@ public class BotController extends TelegramLongPollingBot {
                     user.setPassword(takenmsg[1]);
                     sendMsg(sendMessage.setText("Password was successfully updated"));
                     sendMsg(sendMessage.setText(deleteMsg(chatId, messageId)));
+                    sendMsg(sendMessage.setText("Your password was hide"));
                 }
             }
         }
@@ -100,11 +103,24 @@ public class BotController extends TelegramLongPollingBot {
 
         if (receivedMessage.getText().equals("/data")) {
             if (currentUser == null) {
-                sendMsg(sendMessage.setText("To sign in you have to confirm your login and password \n commands:\n" +
-                        "/set_username <<your login>>\n" +
-                        "/set_password <<your password>>"));
+                sendMsg(sendMessage.setText("Firstly SignUp please"));
             } else {
                 sendMsg(sendMessage.setText(currentUser.toString()));
+            }
+        }
+
+        if (receivedMessage.getText().equals("/mySchedule")) {
+            if (currentUser == null) {
+                sendMsg(sendMessage.setText("Firstly SignUp please"));
+            } else if (currentUser.getRole() != "Teacher") {
+                String path = "C:\\Users\\magzhan\\Desktop\\schedules\\schedules\\";
+                path += currentUser.getEducationProgramm() + " " + currentUser.getGroup() + " " + ".xlsx";
+                File file = new File();
+                SendDocument sendDocumentRequest = new SendDocument();
+                sendDocumentRequest.setChatId(receivedMessage.getChatId());
+                sendDocumentRequest.setDocument();
+                sendDocumentRequest.setCaption("This is your schedule");
+                sendDocument(sendDocumentRequest);
             }
         }
     }
@@ -131,6 +147,15 @@ public class BotController extends TelegramLongPollingBot {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void sendDocUploadingAFile(Long chatId, java.io.File save,String caption) throws TelegramApiException {
+
+        SendDocument sendDocumentRequest = new SendDocument();
+        sendDocumentRequest.setChatId(chatId);
+        sendDocumentRequest.setNewDocument(save);
+        sendDocumentRequest.setCaption(caption);
+        sendDocument(sendDocumentRequest);
     }
 
     public void sendMsg(SendMessage sendMessage) {
