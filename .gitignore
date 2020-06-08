@@ -1,3 +1,2 @@
 .idea/
 Telegram_bot.iml
-src/main/java/repositories/PostgresRepository.java

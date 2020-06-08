@@ -7,7 +7,7 @@ public class Student extends User {
     private String ownClass;
     private String ownFaculty;
 
-    public Student(String ownClass, String ownFaculty) {
+    public Student(long id, String ownClass, String ownFaculty) {
         this.ownClass = ownClass;
         this.ownFaculty = ownFaculty;
     }
@@ -44,4 +44,12 @@ public class Student extends User {
     }
 
     public void setOwnClass(String ownClass) { this.ownClass = ownClass; }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "ownClass='" + ownClass + '\'' +
+                ", ownFaculty='" + ownFaculty + '\'' +
+                "} " + super.toString();
+    }
 }

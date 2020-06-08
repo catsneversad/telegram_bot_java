@@ -2,6 +2,7 @@ package controllers;
 
 import domain.AccessToken;
 import domain.UserLoginData;
+import domain.models.AituInfo;
 import domain.models.Student;
 import domain.models.User;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -26,8 +27,8 @@ import java.util.List;
 public class BotController extends TelegramLongPollingBot {
     private final IUserService userService = new UserService();
     private final IAuthorizationService authService = new AuthorizationService();
-    private final String TOKEN = "922444330:AAGvjm9Fyh9BJ9iSeelDbVvUN32rU7o9Sus";
-    private final String USERNAME = "DimkeksBot";
+    private final String TOKEN = "1196395361:AAHB_vvnGRj2HkjGctut9Kf3vaAy7tSQLb4";
+    private final String USERNAME = "aituit1908ver2_bot";
 
     private UserLoginData user = new UserLoginData();
     private User currentUser = new User();
@@ -61,7 +62,8 @@ public class BotController extends TelegramLongPollingBot {
                 sendMsg(sendMessage.setText("Commands:\n" +
                         "/mygroup - show's your group\n" +
                         "/myfaculty - show's your faculty\n" +
-                        "/myschedule - give's you schedule\n"));
+                        "/myschedule - give's you schedule\n" +
+                        "/aitu - give's info about ASTANA IT UNIVERSITY"));
             }
         }
 
@@ -112,26 +114,45 @@ public class BotController extends TelegramLongPollingBot {
             }
         }
 
-        if (receivedMessage.getText().equals("/myuserdata")) {
-            sendMessage.setText(userService.getUserByUsername(user.getUsername()).toString());
+        if (receivedMessage.getText().equals("/aitu")) {
+            AituInfo info = new AituInfo();
+            sendMsg(sendMessage.setText("Commands:\n" +
+                    "/aitu_info - general information about AITU\n" +
+                    "/aitu_infrastructure - infrastructure of AITU\n" +
+                    "/educational_programs - educational programs\n"));
+        }
+        if (receivedMessage.getText().equals("/aitu_info")) {
+            AituInfo info = new AituInfo();
+            sendMsg(sendMessage.setText(info.getInfo()));
         }
         if (receivedMessage.getText().equals("/mygroup")) {
-            sendMessage.setText("HELLLOO!");
             User student = userService.getStudentDataByUsername(currentUser);
+            sendMsg(sendMessage.setText(((Student) student).getOwnClass()));
         }
         if (receivedMessage.getText().equals("/myfaculty")) {
             User student = userService.getStudentDataByUsername(currentUser);
-            sendMessage.setText(((Student) student).getOwnFaculty());
+            sendMsg(sendMessage.setText(((Student) student).getOwnFaculty()));
+        }
+        if (receivedMessage.getText().equals("/aitu_infrastructure")) {
+            AituInfo info = new AituInfo();
+            sendMsg(sendMessage.setText(info.getInfrastructure()));
+        }
+        if (receivedMessage.getText().equals("/educational_programs")) {
+            AituInfo info = new AituInfo();
+            sendMsg(sendMessage.setText(info.getEducationalPrograms()));
         }
 
-
         if (receivedMessage.getText().equals("/mySchedule")) {
+            System.out.println(currentUser);
             if (currentUser == null) {
                 sendMsg(sendMessage.setText("Firstly SignUp please"));
-            } else if (currentUser.getRole() != "Teacher") {
-                String path = "C:\\Users\\didef\\IdeaProjects\\telegram_bot\\src\\main\\java\\DataBase\\schedules\\";
-                User studentData = userService.getStudentDataByUsername(currentUser);
-                path += ((Student) studentData).getOwnClass() + " " + ((Student) studentData).getOwnFaculty() + " " + ".xlsx";
+            } else if (currentUser != null && currentUser.getRole() != "Teacher") {
+                String path = "C:\\Users\\magzhan\\Desktop\\schedules\\schedules\\";
+
+                Student studentData = (Student)userService.getStudentDataByUsername(currentUser);
+                System.out.println(studentData);
+                path += studentData.getOwnFaculty() + " "  + studentData.getOwnClass() + ".xlsx";
+                System.out.println(path);
                 SendDocument sendDocumentRequest = new SendDocument();
                 sendDocumentRequest.setChatId(receivedMessage.getChatId());
                 sendDocumentRequest.setDocument(path);
@@ -139,8 +160,25 @@ public class BotController extends TelegramLongPollingBot {
                 sendDocumentRequest.setDocument(path);
             }
         }
-    }
 
+        if (currentUser != null && receivedMessage.getText().equals("/edit_info")) {
+            sendMsg(sendMessage.setText("If you wanna change your password send new password in this format: </change_pass: <yourPassword>>"));
+        } else if (currentUser != null && receivedMessage.getText().startsWith("/change_pass:")) {
+            String text = receivedMessage.getText();
+            if (text.length() == 13) {
+                sendMsg(sendMessage.setText("Please enter non-empty password"));
+            } else {
+                String[] takenmsg = text.split(" ");
+                if (takenmsg[1].isEmpty()) {
+                    sendMsg(sendMessage.setText("Please enter non-empty password"));
+                } else {
+                    currentUser.setPassword(takenmsg[1]);
+                    userService.updateUser(currentUser);
+                    sendMsg(sendMessage.setText("new Password has been established"));
+                }
+            }
+        }
+    }
     public String deleteMsg (long chatId, Integer messageId) {
         DeleteMessage delete = new DeleteMessage();
         delete.setChatId(chatId);

@@ -136,14 +136,22 @@ public class UserRepository implements IUserRepository {
         return queryOne(sql);
     }
 
-    public User getStudentByUsername(User user) {
+
+    public Student getStudentByUsername(User user) {
         try {
-            String sql = "SELECT student_group,faculty FROM users WHERE username = ?";
+            String sql = "SELECT * FROM users WHERE username = ?";
             PreparedStatement stmt = dbrepo.getConnection().prepareStatement(sql);
             stmt.setString(1, user.getUsername());
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return new Student(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getString("surname"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getDate("birthday"),
+                        rs.getString("role"),
                         rs.getString("student_group"),
                         rs.getString("faculty")
                 );
