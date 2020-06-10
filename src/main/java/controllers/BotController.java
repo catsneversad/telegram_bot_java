@@ -9,7 +9,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.File;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -20,6 +20,7 @@ import services.UserService;
 import services.interfaces.IAuthorizationService;
 import services.interfaces.IUserService;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,17 +148,28 @@ public class BotController extends TelegramLongPollingBot {
             if (currentUser == null) {
                 sendMsg(sendMessage.setText("Firstly SignUp please"));
             } else if (currentUser != null && currentUser.getRole() != "Teacher") {
-                String path = "C:\\Users\\magzhan\\Desktop\\schedules\\schedules\\";
+                String path = "C:\\Users\\magzhan\\Desktop\\schedules.zip";
 
-                Student studentData = (Student)userService.getStudentDataByUsername(currentUser);
-                System.out.println(studentData);
-                path += studentData.getOwnFaculty() + " "  + studentData.getOwnClass() + ".xlsx";
+//                Student studentData = (Student)userService.getStudentDataByUsername(currentUser);
+//                System.out.println(studentData);
+                //path += studentData.getOwnFaculty() + " "  + studentData.getOwnClass() + ".xlsx";
                 System.out.println(path);
-                SendDocument sendDocumentRequest = new SendDocument();
-                sendDocumentRequest.setChatId(receivedMessage.getChatId());
-                sendDocumentRequest.setDocument(path);
-                sendDocumentRequest.setCaption("This is your schedule");
-                sendDocumentRequest.setDocument(path);
+
+                File file = new File(path);
+
+                InputFile a = new InputFile ();
+                a.setMedia(file, "zip");
+
+                SendDocument sendDocument = new SendDocument();
+                sendDocument.setChatId(chatId);
+                sendDocument.setDocument(a);
+                sendDocument.setCaption("Hello");
+
+                try {
+                    execute(sendDocument);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
